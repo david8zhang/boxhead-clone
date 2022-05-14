@@ -11,6 +11,10 @@ export default class Bootstrap extends Phaser.Scene {
     this.server = new Server()
   }
 
+  preload() {
+    this.load.image('cell', 'chipBlue.png')
+  }
+
   create() {
     this.scene.launch('game', {
       server: this.server,

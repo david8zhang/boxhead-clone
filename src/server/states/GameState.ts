@@ -1,4 +1,5 @@
-import { Schema, type } from '@colyseus/schema'
+import { Schema, ArraySchema, type } from '@colyseus/schema'
+import Player from './Player'
 
 /**
  * Schemas are server-side data structures that help in synchronizing
@@ -11,7 +12,12 @@ import { Schema, type } from '@colyseus/schema'
  *
  * Note: Connected clients are always ensured to be in sync with the server
  */
-export default class MyState extends Schema {
-  @type('string')
-  name = 'test_state'
+export default class GameState extends Schema {
+  @type([Player])
+  players: ArraySchema<Player>
+
+  constructor() {
+    super()
+    this.players = new ArraySchema()
+  }
 }

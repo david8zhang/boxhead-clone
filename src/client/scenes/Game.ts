@@ -44,7 +44,8 @@ export default class Game extends Phaser.Scene {
     this.server?.onPlayerJoin(this.onPlayerJoin, this)
     this.server?.onPlayerLeave(this.onPlayerLeave, this)
     this.server?.onSetPlayerId(this.onSetPlayerId, this)
-    this.server?.onPlayerUpdate(this.onPlayerUpdate, this)
+    this.server?.onPlayerMovementUpdate(this.onPlayerMovementUpdate, this)
+    this.server?.onPlayerShoot(this.onPlayerShoot, this)
   }
 
   handlePlayerMovement() {
@@ -102,13 +103,14 @@ export default class Game extends Phaser.Scene {
       const currentCell = this.playerMapping[this.playerId]
       if (currentCell) {
         currentCell.shootAntibody(target)
+        this.server?.shoot(this.playerId, target)
       }
     })
   }
 
-  private onPlayerUpdate(player: Player, changes: any[]) {
+  private onPlayerMovementUpdate(player: Player, changes: any[]) {
     const playerToUpdate = this.playerMapping[player.id]
-    if (playerToUpdate) {
+    if (playerToUpdate && player.id !== this.playerId) {
       changes.forEach((change) => {
         const { field, value } = change
         if (field === 'xVelocity') {
@@ -117,6 +119,16 @@ export default class Game extends Phaser.Scene {
         if (field === 'yVelocity') {
           playerToUpdate.setVelocityY(value)
         }
+      })
+    }
+  }
+
+  private onPlayerShoot(player: Player, target: { x: number; y: number }) {
+    const playerToUpdate = this.playerMapping[player.id]
+    if (playerToUpdate && player.id !== this.playerId) {
+      playerToUpdate.shootAntibody({
+        x: target.x,
+        y: target.y,
       })
     }
   }

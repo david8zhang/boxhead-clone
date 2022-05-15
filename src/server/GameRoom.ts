@@ -5,6 +5,7 @@ import Phaser from 'phaser'
 import { Message } from '../types/Message'
 import { Dispatcher } from '@colyseus/command'
 import MovePlayerCommand from './commands/MovePlayerCommand'
+import { ShootCommand } from './commands/ShootCommand'
 
 export default class GameRoom extends Room<GameState> {
   private dispatcher = new Dispatcher(this)
@@ -15,6 +16,13 @@ export default class GameRoom extends Room<GameState> {
         client,
         playerId: message.playerId,
         velocity: message.velocity,
+      })
+    })
+    this.onMessage(Message.Shoot, (client, message) => {
+      this.dispatcher.dispatch(new ShootCommand(), {
+        client,
+        playerId: message.playerId,
+        target: message.target,
       })
     })
   }

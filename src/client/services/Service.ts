@@ -38,7 +38,26 @@ export default class Server {
       this.events.emit('player-join', player)
 
       player.onChange = (changes) => {
-        this.events.emit('player-update', player, changes)
+        const isPositionChange = changes.find((change) => {
+          return change.field === 'xVelocity' || change.field == 'yVelocity'
+        })
+        if (isPositionChange) {
+          this.events.emit('player-movement-update', player, changes)
+        }
+
+        const isProjectileChange = changes.find((change) => {
+          return (
+            change.field === 'projectileTargetX' ||
+            change.field === 'projectileTargetY' ||
+            change.field === 'lastShotTimestamp'
+          )
+        })
+        if (isProjectileChange) {
+          this.events.emit('player-shoot', player, {
+            x: player.projectileTargetX,
+            y: player.projectileTargetY,
+          })
+        }
       }
 
       player.triggerAll()
@@ -49,8 +68,12 @@ export default class Server {
     }
   }
 
-  onPlayerUpdate(cb: (player: Player, changes: any[]) => void, context?: any) {
-    this.events.on('player-update', cb, context)
+  onPlayerMovementUpdate(cb: (player: Player, changes: any[]) => void, context?: any) {
+    this.events.on('player-movement-update', cb, context)
+  }
+
+  onPlayerShoot(cb: (player: Player, target: { x: number; y: number }) => void, context?: any) {
+    this.events.on('player-shoot', cb, context)
   }
 
   onSetPlayerId(cb: (playerId: string) => void, context?: any) {
@@ -65,7 +88,6 @@ export default class Server {
     this.events.on('player-leave', cb, context)
   }
 
-  // Attach an observer to game state change events
   onceStateChanged(cb: (state: GameState) => void, context?: any) {
     this.events.once('once-state-changed', cb, context)
   }
@@ -74,6 +96,13 @@ export default class Server {
     this.room?.send(Message.MovePlayer, {
       playerId,
       velocity,
+    })
+  }
+
+  shoot(playerId: string, target: { x: number; y: number }) {
+    this.room?.send(Message.Shoot, {
+      playerId,
+      target,
     })
   }
 }

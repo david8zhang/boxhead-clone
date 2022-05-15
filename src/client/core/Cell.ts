@@ -1,4 +1,6 @@
 import Game from '../scenes/Game'
+import { Constants } from '../utils/Constants'
+import { Antibody } from './Antibody'
 
 export class Cell {
   private id: string
@@ -25,6 +27,28 @@ export class Cell {
 
   updatePosition(x: number, y: number) {
     this.sprite.setPosition(x, y)
+  }
+
+  shootAntibody(target: { x: number; y: number }) {
+    const antibody = new Antibody(this.sprite.x, this.sprite.y, this.game)
+    const angle = Phaser.Math.Angle.BetweenPoints(
+      {
+        x: this.sprite.x,
+        y: this.sprite.y,
+      },
+      {
+        x: target.x,
+        y: target.y,
+      }
+    )
+    const velocityVector = new Phaser.Math.Vector2(0, 0)
+    this.game.physics.velocityFromRotation(angle, Constants.ANTIBODY_SPEED, velocityVector)
+    antibody.rotateToTarget(target)
+    antibody.setVelocity(velocityVector)
+    antibody.setVisible(true)
+    this.game.time.delayedCall(2000, () => {
+      antibody.destroy()
+    })
   }
 
   destroy() {

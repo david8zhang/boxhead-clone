@@ -3,6 +3,7 @@ import GameState from '~/server/states/GameState'
 import { Player } from '~/types/IGameState'
 import { Cell } from '../core/Cell'
 import type Server from '../services/Service'
+import { Constants } from '../utils/Constants'
 
 export default class Game extends Phaser.Scene {
   private server?: Server
@@ -10,6 +11,12 @@ export default class Game extends Phaser.Scene {
     [id: string]: Cell
   }
   private playerId: string = ''
+
+  // WASD movement
+  private keyW!: Phaser.Input.Keyboard.Key
+  private keyA!: Phaser.Input.Keyboard.Key
+  private keyS!: Phaser.Input.Keyboard.Key
+  private keyD!: Phaser.Input.Keyboard.Key
 
   constructor() {
     super('game')
@@ -24,6 +31,8 @@ export default class Game extends Phaser.Scene {
 
     await this.server.join()
     this.server.onceStateChanged(this.initGame)
+    this.setupMousePointerListener()
+    this.setupKeyboardKeys()
   }
 
   private initGame = (initialState: GameState) => {
@@ -39,17 +48,20 @@ export default class Game extends Phaser.Scene {
   }
 
   handlePlayerMovement() {
-    const keyboard = this.input.keyboard.createCursorKeys()
-    const leftDown = keyboard.left.isDown
-    const rightDown = keyboard.right.isDown
-    const upDown = keyboard.up.isDown
-    const downDown = keyboard.down.isDown
+    if (!this.keyA || !this.keyD || !this.keyW || !this.keyS) {
+      return
+    }
+
+    const leftDown = this.keyA.isDown
+    const rightDown = this.keyD.isDown
+    const upDown = this.keyW.isDown
+    const downDown = this.keyS.isDown
 
     const currentCell = this.playerMapping[this.playerId]
     if (!currentCell) {
       return
     }
-    const speed = 100
+    const speed = Constants.PLAYER_SPEED
     if (leftDown || rightDown) {
       let velocityX = leftDown ? -speed : speed
       if (leftDown && rightDown) {
@@ -72,6 +84,26 @@ export default class Game extends Phaser.Scene {
       currentCell.setVelocityY(0)
       this.server?.movePlayer(this.playerId, { y: 0 })
     }
+  }
+
+  setupKeyboardKeys() {
+    this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W)
+    this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A)
+    this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S)
+    this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+  }
+
+  setupMousePointerListener() {
+    this.input.on('pointerup', () => {
+      const target = {
+        x: this.input.mousePointer.x,
+        y: this.input.mousePointer.y,
+      }
+      const currentCell = this.playerMapping[this.playerId]
+      if (currentCell) {
+        currentCell.shootAntibody(target)
+      }
+    })
   }
 
   private onPlayerUpdate(player: Player, changes: any[]) {

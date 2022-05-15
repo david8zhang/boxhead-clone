@@ -12,7 +12,7 @@ export default class Server {
   private _playerId: string = ''
 
   constructor() {
-    this.client = new Client('ws://10.0.0.5:2567')
+    this.client = new Client('ws://localhost:2567')
     this.events = new Phaser.Events.EventEmitter()
   }
 

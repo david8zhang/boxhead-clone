@@ -49,6 +49,7 @@ export class Cell {
     this.game.time.delayedCall(2000, () => {
       antibody.destroy()
     })
+    return antibody
   }
 
   destroy() {

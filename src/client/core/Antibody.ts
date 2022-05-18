@@ -1,11 +1,12 @@
 import Game from '../scenes/Game'
 
 export class Antibody {
-  private sprite: Phaser.Physics.Arcade.Sprite
+  public sprite: Phaser.Physics.Arcade.Sprite
   private game: Game
   constructor(x: number, y: number, game: Game) {
     this.game = game
     this.sprite = this.game.physics.add.sprite(x, y, 'antibody').setVisible(false)
+    this.sprite.setData('ref', this)
   }
 
   public setVelocity(velocityVector: Phaser.Math.Vector2) {

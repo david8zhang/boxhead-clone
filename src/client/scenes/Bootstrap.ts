@@ -14,6 +14,7 @@ export default class Bootstrap extends Phaser.Scene {
   preload() {
     this.load.image('cell', 'cell.png')
     this.load.image('antibody', 'antibody.png')
+    this.load.image('virus', 'virus.png')
   }
 
   create() {

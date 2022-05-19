@@ -3,10 +3,12 @@ import { Constants } from '../utils/Constants'
 import { Cell } from './Cell'
 
 export class Virus {
+  public virusId: string
   private game: Game
   public sprite: Phaser.Physics.Arcade.Sprite
   private moveTarget?: Cell
-  constructor(position: { x: number; y: number }, game: Game) {
+  constructor(position: { x: number; y: number }, virusId: string, game: Game) {
+    this.virusId = virusId
     this.game = game
     this.sprite = this.game.physics.add.sprite(position.x, position.y, 'virus').setScale(0.75)
     this.sprite.setData('ref', this)

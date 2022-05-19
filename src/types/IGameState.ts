@@ -1,6 +1,8 @@
-export interface Projectile {
-  targetX: number
-  targetY: number
+export interface IVirus {
+  spawnX: number
+  spawnY: number
+  targetId: string
+  virusId: string
 }
 
 export interface Player {
@@ -17,5 +19,6 @@ export interface Player {
 }
 
 export interface GameState {
-  players: Player
+  players: Player[]
+  viruses: Map<string, IVirus>
 }

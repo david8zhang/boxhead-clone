@@ -37,7 +37,8 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "phaser": "^3.50.1",
-    "regenerator-runtime": "^0.13.7"
+    "regenerator-runtime": "^0.13.7",
+    "short-uuid": "^4.2.0"
   },
   "parcelCleanPaths": [
     "dist"

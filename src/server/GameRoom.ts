@@ -6,6 +6,8 @@ import { Message } from '../types/Message'
 import { Dispatcher } from '@colyseus/command'
 import MovePlayerCommand from './commands/MovePlayerCommand'
 import { ShootCommand } from './commands/ShootCommand'
+import { SpawnVirusCommand } from './commands/SpawnVirusCommand'
+import { KillVirusCommand } from './commands/KillVirusCommand'
 
 export default class GameRoom extends Room<GameState> {
   private dispatcher = new Dispatcher(this)
@@ -25,6 +27,15 @@ export default class GameRoom extends Room<GameState> {
         target: message.target,
       })
     })
+    this.onMessage(Message.KillVirus, (client, message) => {
+      this.dispatcher.dispatch(new KillVirusCommand(), {
+        virusId: message.virusId,
+      })
+    })
+
+    setInterval(() => {
+      this.dispatcher.dispatch(new SpawnVirusCommand())
+    }, 2000)
   }
 
   onJoin(client: Client, options: any) {

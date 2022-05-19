@@ -1,7 +1,7 @@
 import { Client, Room } from 'colyseus.js'
 import { Schema } from '@colyseus/schema'
 import GameState from '~/server/states/GameState'
-import { Player } from '~/types/IGameState'
+import { IVirus, Player } from '~/types/IGameState'
 import { Message } from '../../types/Message'
 
 // This service will handle client-side communications with our multiplayer server
@@ -33,6 +33,10 @@ export default class Server {
     this.room.onStateChange.once((state) => {
       this.events.emit('once-state-changed', state)
     })
+
+    this.room.state.viruses.onAdd = (virus) => {
+      this.events.emit('spawn-virus', virus)
+    }
 
     this.room.state.players.onAdd = (player) => {
       this.events.emit('player-join', player)
@@ -66,6 +70,10 @@ export default class Server {
     this.room.state.players.onRemove = (player) => {
       this.events.emit('player-leave', player)
     }
+  }
+
+  onVirusSpawn(cb: (virus: IVirus) => void, context?: any) {
+    this.events.on('spawn-virus', cb, context)
   }
 
   onPlayerMovementUpdate(cb: (player: Player, changes: any[]) => void, context?: any) {
@@ -103,6 +111,12 @@ export default class Server {
     this.room?.send(Message.Shoot, {
       playerId,
       target,
+    })
+  }
+
+  killVirus(virusId: string) {
+    this.room?.send(Message.KillVirus, {
+      virusId,
     })
   }
 }

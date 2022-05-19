@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import GameState from '~/server/states/GameState'
-import { Player } from '~/types/IGameState'
+import { IVirus, Player } from '~/types/IGameState'
 import { Antibody } from '../core/Antibody'
 import { Cell } from '../core/Cell'
 import { Virus } from '../core/Virus'
@@ -32,18 +32,8 @@ export default class Game extends Phaser.Scene {
     // Setup gameobject groups
     this.viruses = this.add.group()
     this.antibodies = this.add.group()
-
-    this.physics.add.collider(this.viruses, this.antibodies, (obj1, obj2) => {
-      const virus = obj1.getData('ref') as Virus
-      const antibody = obj2.getData('ref') as Antibody
-
-      virus.destroy()
-      antibody.destroy()
-    })
-
     this.setupMousePointerListener()
     this.setupKeyboardKeys()
-    this.setupSpawner()
 
     const { server } = data
     this.server = server
@@ -52,30 +42,17 @@ export default class Game extends Phaser.Scene {
     }
     await this.server.join()
     this.server.onceStateChanged(this.initGame)
-  }
 
-  setupSpawner() {
-    this.time.addEvent({
-      delay: 2000,
-      callback: this.spawnVirus,
-      callbackScope: this,
-      repeat: -1,
+    this.physics.add.collider(this.viruses, this.antibodies, (obj1, obj2) => {
+      const virus = obj1.getData('ref') as Virus
+      const antibody = obj2.getData('ref') as Antibody
+      virus.destroy()
+      antibody.destroy()
+
+      if (this.server) {
+        this.server.killVirus(virus.virusId)
+      }
     })
-  }
-
-  spawnVirus() {
-    const fromTopBorder = Phaser.Math.Between(0, 1) === 0
-    const randX = Phaser.Math.Between(0, Constants.GAME_WIDTH)
-    const position = {
-      x: randX,
-      y: fromTopBorder ? Constants.GAME_HEIGHT - 20 : 20,
-    }
-    const virus = new Virus(position, this)
-    const allPlayerIds = Object.keys(this.playerMapping)
-    const randPlayerId = allPlayerIds[Phaser.Math.Between(0, allPlayerIds.length - 1)]
-    const randPlayer = this.playerMapping[randPlayerId]
-    virus.setMoveTarget(randPlayer)
-    this.viruses.add(virus.sprite)
   }
 
   private initGame = (initialState: GameState) => {
@@ -89,6 +66,7 @@ export default class Game extends Phaser.Scene {
     this.server?.onSetPlayerId(this.onSetPlayerId, this)
     this.server?.onPlayerMovementUpdate(this.onPlayerMovementUpdate, this)
     this.server?.onPlayerShoot(this.onPlayerShoot, this)
+    this.server?.onVirusSpawn(this.onSpawnVirus, this)
   }
 
   handlePlayerMovement() {
@@ -138,7 +116,7 @@ export default class Game extends Phaser.Scene {
   }
 
   setupMousePointerListener() {
-    this.input.on('pointerup', () => {
+    this.input.on('pointerdown', () => {
       const target = {
         x: this.input.mousePointer.x,
         y: this.input.mousePointer.y,
@@ -167,13 +145,28 @@ export default class Game extends Phaser.Scene {
     }
   }
 
+  private onSpawnVirus(virus: IVirus) {
+    const newVirus = new Virus(
+      {
+        x: virus.spawnX,
+        y: virus.spawnY,
+      },
+      virus.virusId,
+      this
+    )
+    const player = this.playerMapping[virus.targetId]
+    newVirus.setMoveTarget(player)
+    this.viruses.add(newVirus.sprite)
+  }
+
   private onPlayerShoot(player: Player, target: { x: number; y: number }) {
     const playerToUpdate = this.playerMapping[player.id]
     if (playerToUpdate && player.id !== this.playerId) {
-      playerToUpdate.shootAntibody({
+      const antibody = playerToUpdate.shootAntibody({
         x: target.x,
         y: target.y,
       })
+      this.antibodies.add(antibody.sprite)
     }
   }
 
@@ -199,11 +192,9 @@ export default class Game extends Phaser.Scene {
 
   update() {
     this.handlePlayerMovement()
-    if (this.viruses) {
-      this.viruses.children.entries.forEach((virus) => {
-        const virusRef: Virus = virus.getData('ref')
-        virusRef.update()
-      })
-    }
+    this.viruses.children.entries.forEach((virusSprite) => {
+      const virus: Virus = virusSprite.getData('ref')
+      virus.update()
+    })
   }
 }

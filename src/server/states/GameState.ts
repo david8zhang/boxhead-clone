@@ -1,5 +1,6 @@
-import { Schema, ArraySchema, type } from '@colyseus/schema'
+import { Schema, ArraySchema, MapSchema, type } from '@colyseus/schema'
 import Player from './Player'
+import Virus from './Virus'
 
 /**
  * Schemas are server-side data structures that help in synchronizing
@@ -16,8 +17,12 @@ export default class GameState extends Schema {
   @type([Player])
   players: ArraySchema<Player>
 
+  @type({ map: Virus })
+  viruses: MapSchema<Virus>
+
   constructor() {
     super()
     this.players = new ArraySchema()
+    this.viruses = new MapSchema()
   }
 }

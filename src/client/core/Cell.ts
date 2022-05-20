@@ -1,12 +1,14 @@
 import Game from '../scenes/Game'
 import { Constants } from '../utils/Constants'
 import { Antibody } from './Antibody'
+import { Healthbar } from './Healthbar'
 
 export class Cell {
   private id: string
   public sprite: Phaser.Physics.Arcade.Sprite
   public highlight: Phaser.Physics.Arcade.Sprite
   public game: Game
+  public healthbar: Healthbar
 
   constructor(id: string, position: { x: number; y: number }, game: Game) {
     this.id = id
@@ -19,6 +21,16 @@ export class Cell {
       .setDisplaySize(this.sprite.displayWidth * 1.25, this.sprite.displayHeight * 1.25)
       .setTintFill(0xffff00)
       .setVisible(false)
+
+    this.healthbar = new Healthbar(this.game, {
+      width: 10,
+      length: 100,
+      position: {
+        x: this.sprite.x,
+        y: this.sprite.y - this.sprite.displayHeight,
+      },
+      maxHealth: 100,
+    })
   }
 
   toggleHighlight(state: boolean) {
@@ -70,5 +82,9 @@ export class Cell {
   setVelocityY(yVelocity: number) {
     this.highlight.setVelocityY(yVelocity)
     this.sprite.setVelocityY(yVelocity)
+  }
+
+  update() {
+    this.healthbar.setPosition(this.sprite.x, this.sprite.y - this.sprite.displayHeight)
   }
 }

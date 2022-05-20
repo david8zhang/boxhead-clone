@@ -196,5 +196,8 @@ export default class Game extends Phaser.Scene {
       const virus: Virus = virusSprite.getData('ref')
       virus.update()
     })
+    Object.keys(this.playerMapping).forEach((playerId: string) => {
+      this.playerMapping[playerId].update()
+    })
   }
 }

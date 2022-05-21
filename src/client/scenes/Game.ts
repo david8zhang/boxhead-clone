@@ -9,10 +9,6 @@ import { Constants } from '../utils/Constants'
 
 export default class Game extends Phaser.Scene {
   private server?: Server
-  public playerMapping: {
-    [id: string]: Cell
-  }
-  private playerId: string = ''
 
   // WASD movement
   private keyW!: Phaser.Input.Keyboard.Key
@@ -20,9 +16,16 @@ export default class Game extends Phaser.Scene {
   private keyS!: Phaser.Input.Keyboard.Key
   private keyD!: Phaser.Input.Keyboard.Key
 
-  // Viruses
+  // Entities
   private viruses!: Phaser.GameObjects.Group
   private antibodies!: Phaser.GameObjects.Group
+
+  // Player
+  public cells!: Phaser.GameObjects.Group
+  public playerMapping: {
+    [id: string]: Cell
+  }
+  private playerId: string = ''
 
   constructor() {
     super('game')
@@ -32,6 +35,7 @@ export default class Game extends Phaser.Scene {
     // Setup gameobject groups
     this.viruses = this.add.group()
     this.antibodies = this.add.group()
+    this.cells = this.add.group()
     this.setupMousePointerListener()
     this.setupKeyboardKeys()
 
@@ -43,6 +47,12 @@ export default class Game extends Phaser.Scene {
     await this.server.join()
     this.server.onceStateChanged(this.initGame)
 
+    // Create collider between viruses and antibodies
+    this.setupVirusAntibodyCollider()
+    this.setupVirusCellCollider()
+  }
+
+  setupVirusAntibodyCollider() {
     this.physics.add.collider(this.viruses, this.antibodies, (obj1, obj2) => {
       const virus = obj1.getData('ref') as Virus
       const antibody = obj2.getData('ref') as Antibody
@@ -55,9 +65,19 @@ export default class Game extends Phaser.Scene {
     })
   }
 
+  setupVirusCellCollider() {
+    this.physics.add.collider(this.viruses, this.cells, (obj1, obj2) => {
+      const virus = obj1.getData('ref') as Virus
+      const cell = obj2.getData('ref') as Cell
+      cell.takeDamage(Constants.VIRUS_DAMAGE)
+    })
+  }
+
   private initGame = (initialState: GameState) => {
     initialState.players.forEach((player) => {
-      this.playerMapping[player.id] = new Cell(player.id, { x: player.x, y: player.y }, this)
+      const cell = new Cell(player.id, { x: player.x, y: player.y }, this)
+      this.cells.add(cell.sprite)
+      this.playerMapping[player.id] = cell
     })
 
     // Register observers
@@ -176,17 +196,19 @@ export default class Game extends Phaser.Scene {
   }
 
   private onPlayerJoin(newPlayer: Player) {
-    this.playerMapping[newPlayer.id] = new Cell(
-      newPlayer.id,
-      { x: newPlayer.x, y: newPlayer.y },
-      this
-    )
+    const cell = new Cell(newPlayer.id, { x: newPlayer.x, y: newPlayer.y }, this)
+    this.playerMapping[newPlayer.id] = cell
+    this.cells.add(cell.sprite)
   }
 
   private onPlayerLeave(playerToRemove: Player) {
-    if (this.playerMapping[playerToRemove.id]) {
-      this.playerMapping[playerToRemove.id].destroy()
-      delete this.playerMapping[playerToRemove.id]
+    this.removePlayer(playerToRemove.id)
+  }
+
+  public removePlayer(playerId: string) {
+    if (this.playerMapping[playerId]) {
+      this.playerMapping[playerId].destroy()
+      delete this.playerMapping[playerId]
     }
   }
 

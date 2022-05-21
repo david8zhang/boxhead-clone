@@ -69,6 +69,11 @@ export class Healthbar {
     this.draw()
   }
 
+  destroy() {
+    this.bar.clear()
+    this.bar.destroy()
+  }
+
   draw(): void {
     this.bar.clear()
     const percentage = this.currHealth / this.maxHealth

@@ -9,6 +9,7 @@ export class Cell {
   public highlight: Phaser.Physics.Arcade.Sprite
   public game: Game
   public healthbar: Healthbar
+  public isInvulnerable = false
 
   constructor(id: string, position: { x: number; y: number }, game: Game) {
     this.id = id
@@ -16,6 +17,9 @@ export class Cell {
 
     const { x, y } = position
     this.sprite = this.game.physics.add.sprite(x, y, 'cell').setDepth(1)
+    this.sprite.setData('ref', this)
+    this.sprite.setPushable(false)
+
     this.highlight = this.game.physics.add
       .sprite(x, y, 'cell')
       .setDisplaySize(this.sprite.displayWidth * 1.25, this.sprite.displayHeight * 1.25)
@@ -64,9 +68,37 @@ export class Cell {
     return antibody
   }
 
+  takeDamage(damage: number) {
+    if (!this.isInvulnerable) {
+      this.flashTint(0xff0000)
+      this.game.cameras.main.shake(100, 0.005)
+      this.isInvulnerable = true
+      this.healthbar.decreaseHealth(damage)
+      if (this.healthbar.currHealth === 0) {
+        this.game.removePlayer(this.id)
+      }
+      this.game.time.delayedCall(500, () => {
+        this.isInvulnerable = false
+      })
+    }
+  }
+
+  flashTint(color: number) {
+    this.highlight.setTintFill(color)
+    this.sprite.setTintFill(color)
+    this.game.time.addEvent({
+      delay: 50,
+      callback: () => {
+        this.highlight.setTintFill(0xffff00)
+        this.sprite.clearTint()
+      },
+    })
+  }
+
   destroy() {
     this.sprite.destroy()
     this.highlight.destroy()
+    this.healthbar.destroy()
   }
 
   setVelocity(xVelocity: number, yVelocity: number) {

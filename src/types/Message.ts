@@ -3,4 +3,5 @@ export enum Message {
   MovePlayer,
   Shoot,
   KillVirus,
+  DamagePlayer,
 }

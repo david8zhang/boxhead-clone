@@ -67,9 +67,11 @@ export default class Game extends Phaser.Scene {
 
   setupVirusCellCollider() {
     this.physics.add.collider(this.viruses, this.cells, (obj1, obj2) => {
-      const virus = obj1.getData('ref') as Virus
       const cell = obj2.getData('ref') as Cell
       cell.takeDamage(Constants.VIRUS_DAMAGE)
+      if (cell.id === this.playerId) {
+        this.server?.takeDamage(this.playerId, Constants.VIRUS_DAMAGE)
+      }
     })
   }
 
@@ -87,6 +89,7 @@ export default class Game extends Phaser.Scene {
     this.server?.onPlayerMovementUpdate(this.onPlayerMovementUpdate, this)
     this.server?.onPlayerShoot(this.onPlayerShoot, this)
     this.server?.onVirusSpawn(this.onSpawnVirus, this)
+    this.server?.onPlayerDamaged(this.onPlayerDamaged, this)
   }
 
   handlePlayerMovement() {
@@ -165,6 +168,21 @@ export default class Game extends Phaser.Scene {
     }
   }
 
+  private onPlayerDamaged(player: Player, changes: any[]) {
+    const playerToUpdate = this.playerMapping[player.id]
+    if (playerToUpdate && player.id !== this.playerId) {
+      changes.forEach((change) => {
+        const { field, value } = change
+        if (field === 'health') {
+          const currHealth = playerToUpdate.health
+          const newHealth = value
+          const damage = currHealth - newHealth
+          playerToUpdate.takeDamage(damage)
+        }
+      })
+    }
+  }
+
   private onSpawnVirus(virus: IVirus) {
     const newVirus = new Virus(
       {
@@ -209,6 +227,14 @@ export default class Game extends Phaser.Scene {
     if (this.playerMapping[playerId]) {
       this.playerMapping[playerId].destroy()
       delete this.playerMapping[playerId]
+    }
+
+    // Go to game over scene if all the players are dead
+    if (Object.keys(this.playerMapping).length == 0) {
+      if (this.server) {
+        this.server?.onGameOver()
+      }
+      this.scene.start('gameover')
     }
   }
 

@@ -8,8 +8,10 @@ import MovePlayerCommand from './commands/MovePlayerCommand'
 import { ShootCommand } from './commands/ShootCommand'
 import { SpawnVirusCommand } from './commands/SpawnVirusCommand'
 import { KillVirusCommand } from './commands/KillVirusCommand'
+import { DamagePlayerCommand } from './commands/DamagePlayerCommand'
 
 export default class GameRoom extends Room<GameState> {
+  private spawnVirusInterval?: NodeJS.Timer
   private dispatcher = new Dispatcher(this)
   onCreate() {
     this.setState(new GameState())
@@ -33,7 +35,14 @@ export default class GameRoom extends Room<GameState> {
       })
     })
 
-    setInterval(() => {
+    this.onMessage(Message.DamagePlayer, (client, message) => {
+      this.dispatcher.dispatch(new DamagePlayerCommand(), {
+        playerId: message.playerId,
+        damage: message.damage,
+      })
+    })
+
+    this.spawnVirusInterval = setInterval(() => {
       this.dispatcher.dispatch(new SpawnVirusCommand())
     }, 2000)
   }
@@ -41,8 +50,8 @@ export default class GameRoom extends Room<GameState> {
   onJoin(client: Client, options: any) {
     this.state.players.push(
       new Player(client.id, {
-        x: Math.floor(Math.random() * 100),
-        y: Math.floor(Math.random() * 100),
+        x: Math.floor(Math.random() * 800),
+        y: Math.floor(Math.random() * 600),
       })
     )
     client.send(Message.SetPlayerId, { playerId: client.id })

@@ -42,11 +42,20 @@ export default class Server {
       this.events.emit('player-join', player)
 
       player.onChange = (changes) => {
+        // Update position
         const isPositionChange = changes.find((change) => {
           return change.field === 'xVelocity' || change.field == 'yVelocity'
         })
         if (isPositionChange) {
           this.events.emit('player-movement-update', player, changes)
+        }
+
+        // Update health
+        const isHealthChange = changes.find((change) => {
+          return change.field === 'health'
+        })
+        if (isHealthChange) {
+          this.events.emit('player-damaged', player, changes)
         }
 
         const isProjectileChange = changes.find((change) => {
@@ -96,8 +105,25 @@ export default class Server {
     this.events.on('player-leave', cb, context)
   }
 
+  onPlayerDamaged(cb: (player: Player, changes: any[]) => void, context?: any) {
+    this.events.on('player-damage', cb, context)
+  }
+
   onceStateChanged(cb: (state: GameState) => void, context?: any) {
     this.events.once('once-state-changed', cb, context)
+  }
+
+  onGameOver() {
+    if (this.room) {
+      this.room?.leave()
+    }
+  }
+
+  takeDamage(playerId: string, damage: number) {
+    this.room?.send(Message.DamagePlayer, {
+      playerId,
+      damage,
+    })
   }
 
   movePlayer(playerId: string, velocity: { x?: number; y?: number }) {

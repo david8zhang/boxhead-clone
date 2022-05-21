@@ -4,7 +4,7 @@ import { Antibody } from './Antibody'
 import { Healthbar } from './Healthbar'
 
 export class Cell {
-  private id: string
+  public id: string
   public sprite: Phaser.Physics.Arcade.Sprite
   public highlight: Phaser.Physics.Arcade.Sprite
   public game: Game
@@ -66,6 +66,10 @@ export class Cell {
       antibody.destroy()
     })
     return antibody
+  }
+
+  get health() {
+    return this.healthbar.currHealth
   }
 
   takeDamage(damage: number) {

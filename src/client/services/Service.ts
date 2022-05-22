@@ -145,4 +145,8 @@ export default class Server {
       virusId,
     })
   }
+
+  startGame() {
+    this.room?.send(Message.StartGame)
+  }
 }

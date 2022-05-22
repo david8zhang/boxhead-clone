@@ -23,3 +23,8 @@ export interface GameState {
   players: Player[]
   viruses: Map<string, IVirus>
 }
+
+export enum GamePlayingState {
+  PLAYING = 0,
+  WAITING = 0,
+}

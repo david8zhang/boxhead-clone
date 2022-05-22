@@ -1,4 +1,5 @@
 import { Schema, ArraySchema, MapSchema, type } from '@colyseus/schema'
+import { GamePlayingState } from '../../types/IGameState'
 import Player from './Player'
 import Virus from './Virus'
 
@@ -19,6 +20,9 @@ export default class GameState extends Schema {
 
   @type({ map: Virus })
   viruses: MapSchema<Virus>
+
+  @type('number')
+  gamePlayingState: number = GamePlayingState.WAITING
 
   constructor() {
     super()

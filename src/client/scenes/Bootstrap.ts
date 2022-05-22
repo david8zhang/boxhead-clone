@@ -18,7 +18,7 @@ export default class Bootstrap extends Phaser.Scene {
   }
 
   create() {
-    this.scene.launch('game', {
+    this.scene.launch('menu', {
       server: this.server,
     })
   }

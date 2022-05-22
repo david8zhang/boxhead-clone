@@ -3,7 +3,8 @@ import 'regenerator-runtime/runtime'
 
 import Bootstrap from './scenes/Bootstrap'
 import Game from './scenes/Game'
-import { GameOver } from './scenes/GameOver'
+import GameOver from './scenes/GameOver'
+import MainMenu from './scenes/MainMenu'
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -15,7 +16,7 @@ const config: Phaser.Types.Core.GameConfig = {
       gravity: { y: 0 },
     },
   },
-  scene: [Bootstrap, Game, GameOver],
+  scene: [Bootstrap, MainMenu, Game, GameOver],
 }
 
 export default new Phaser.Game(config)

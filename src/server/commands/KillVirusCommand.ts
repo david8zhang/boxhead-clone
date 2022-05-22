@@ -6,6 +6,8 @@ interface Payload {
 
 export class KillVirusCommand extends Command {
   execute(data: Payload) {
-    this.room.state.viruses.delete(data.virusId)
+    if (this.room.state.viruses[data.virusId]) {
+      this.room.state.viruses.delete(data.virusId)
+    }
   }
 }

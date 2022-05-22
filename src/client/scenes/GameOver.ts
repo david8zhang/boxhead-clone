@@ -1,8 +1,7 @@
 import { Scene } from 'phaser'
-import Server from '../services/Service'
 import { Constants } from '../utils/Constants'
 
-export class GameOver extends Scene {
+export default class GameOver extends Scene {
   constructor() {
     super('gameover')
   }

@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
-import GameState from '~/server/states/GameState'
-import { IVirus, Player } from '~/types/IGameState'
+import GameState from '../../server/states/GameState'
+import { IVirus, Player, GamePlayingState } from '../../types/IGameState'
 import { Antibody } from '../core/Antibody'
 import { Cell } from '../core/Cell'
 import { Virus } from '../core/Virus'
@@ -9,6 +9,7 @@ import { Constants } from '../utils/Constants'
 
 export default class Game extends Phaser.Scene {
   private server?: Server
+  private waitingForPlayersText!: Phaser.GameObjects.Text
 
   // WASD movement
   private keyW!: Phaser.Input.Keyboard.Key
@@ -50,6 +51,11 @@ export default class Game extends Phaser.Scene {
     // Create collider between viruses and antibodies
     this.setupVirusAntibodyCollider()
     this.setupVirusCellCollider()
+    this.waitingForPlayersText = this.add.text(0, 0, 'Waiting for players...')
+    this.waitingForPlayersText.setPosition(
+      Constants.GAME_WIDTH / 2 - this.waitingForPlayersText.displayWidth / 2,
+      100
+    )
   }
 
   setupVirusAntibodyCollider() {
@@ -81,6 +87,13 @@ export default class Game extends Phaser.Scene {
       this.cells.add(cell.sprite)
       this.playerMapping[player.id] = cell
     })
+
+    if (initialState.players.length === 2) {
+      this.waitingForPlayersText.setVisible(false)
+      if (this.server) {
+        this.server.startGame()
+      }
+    }
 
     // Register observers
     this.server?.onPlayerJoin(this.onPlayerJoin, this)
@@ -217,6 +230,8 @@ export default class Game extends Phaser.Scene {
     const cell = new Cell(newPlayer.id, { x: newPlayer.x, y: newPlayer.y }, this)
     this.playerMapping[newPlayer.id] = cell
     this.cells.add(cell.sprite)
+
+    if (Object.keys(this.playerMapping).length === 2) this.waitingForPlayersText.setVisible(false)
   }
 
   private onPlayerLeave(playerToRemove: Player) {

@@ -2,7 +2,6 @@ import { Schema, type } from '@colyseus/schema'
 
 export default class Player extends Schema {
   @type('string') id: string
-  @type('number') health: number = 100
   @type('number') x: number
   @type('number') y: number
   @type('number') xVelocity: number = 0

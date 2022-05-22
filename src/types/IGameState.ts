@@ -6,7 +6,6 @@ export interface IVirus {
 }
 
 export interface Player {
-  health: number
   x: number
   y: number
   id: string

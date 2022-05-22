@@ -40,6 +40,9 @@ export default class Game extends Phaser.Scene {
     this.setupMousePointerListener()
     this.setupKeyboardKeys()
 
+    // Setup camera
+    this.cameras.main.setBackgroundColor('#af4154')
+
     const { server } = data
     this.server = server
     if (!this.server) {
@@ -75,9 +78,6 @@ export default class Game extends Phaser.Scene {
     this.physics.add.collider(this.viruses, this.cells, (obj1, obj2) => {
       const cell = obj2.getData('ref') as Cell
       cell.takeDamage(Constants.VIRUS_DAMAGE)
-      if (cell.id === this.playerId) {
-        this.server?.takeDamage(this.playerId, Constants.VIRUS_DAMAGE)
-      }
     })
   }
 
@@ -102,7 +102,6 @@ export default class Game extends Phaser.Scene {
     this.server?.onPlayerMovementUpdate(this.onPlayerMovementUpdate, this)
     this.server?.onPlayerShoot(this.onPlayerShoot, this)
     this.server?.onVirusSpawn(this.onSpawnVirus, this)
-    this.server?.onPlayerDamaged(this.onPlayerDamaged, this)
   }
 
   handlePlayerMovement() {
@@ -181,21 +180,6 @@ export default class Game extends Phaser.Scene {
     }
   }
 
-  private onPlayerDamaged(player: Player, changes: any[]) {
-    const playerToUpdate = this.playerMapping[player.id]
-    if (playerToUpdate && player.id !== this.playerId) {
-      changes.forEach((change) => {
-        const { field, value } = change
-        if (field === 'health') {
-          const currHealth = playerToUpdate.health
-          const newHealth = value
-          const damage = currHealth - newHealth
-          playerToUpdate.takeDamage(damage)
-        }
-      })
-    }
-  }
-
   private onSpawnVirus(virus: IVirus) {
     const newVirus = new Virus(
       {
@@ -235,14 +219,21 @@ export default class Game extends Phaser.Scene {
   }
 
   private onPlayerLeave(playerToRemove: Player) {
-    this.removePlayer(playerToRemove.id)
+    if (this.playerMapping[playerToRemove.id]) {
+      this.removePlayer(playerToRemove.id)
+    }
   }
 
   public removePlayer(playerId: string) {
-    if (this.playerMapping[playerId]) {
-      this.playerMapping[playerId].destroy()
-      delete this.playerMapping[playerId]
-    }
+    // Redirect pre-existing viruses
+    const idsToTarget = Object.keys(this.playerMapping).filter((id) => {
+      return playerId !== id
+    })
+    this.redirectViruses(playerId, idsToTarget)
+
+    // Delete the player
+    this.playerMapping[playerId].destroy()
+    delete this.playerMapping[playerId]
 
     // Go to game over scene if all the players are dead
     if (Object.keys(this.playerMapping).length == 0) {
@@ -250,7 +241,21 @@ export default class Game extends Phaser.Scene {
         this.server?.onGameOver()
       }
       this.scene.start('gameover')
+    } else {
+      if (this.server) {
+        this.server?.onPlayerDie(playerId)
+      }
     }
+  }
+
+  public redirectViruses(playerToDeleteId: string, remainingIds: string[]) {
+    this.viruses.children.entries.forEach((obj) => {
+      const virus = obj.getData('ref') as Virus
+      if (virus.moveTarget && virus.moveTarget.id === playerToDeleteId) {
+        const newMoveTargetId = remainingIds[Phaser.Math.Between(0, remainingIds.length - 1)]
+        virus.setMoveTarget(this.playerMapping[newMoveTargetId])
+      }
+    })
   }
 
   update() {

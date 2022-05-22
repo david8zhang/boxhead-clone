@@ -1,9 +1,7 @@
 import { Command } from '@colyseus/command'
-import { Client } from 'colyseus.js'
 import Player from '../states/Player'
 
 type Payload = {
-  client: Client
   playerId: string
   velocity: {
     x: number

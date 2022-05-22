@@ -50,14 +50,7 @@ export default class Server {
           this.events.emit('player-movement-update', player, changes)
         }
 
-        // Update health
-        const isHealthChange = changes.find((change) => {
-          return change.field === 'health'
-        })
-        if (isHealthChange) {
-          this.events.emit('player-damaged', player, changes)
-        }
-
+        // Projectile position
         const isProjectileChange = changes.find((change) => {
           return (
             change.field === 'projectileTargetX' ||
@@ -119,13 +112,6 @@ export default class Server {
     }
   }
 
-  takeDamage(playerId: string, damage: number) {
-    this.room?.send(Message.DamagePlayer, {
-      playerId,
-      damage,
-    })
-  }
-
   movePlayer(playerId: string, velocity: { x?: number; y?: number }) {
     this.room?.send(Message.MovePlayer, {
       playerId,
@@ -143,6 +129,12 @@ export default class Server {
   killVirus(virusId: string) {
     this.room?.send(Message.KillVirus, {
       virusId,
+    })
+  }
+
+  onPlayerDie(playerId: string) {
+    this.room?.send(Message.PlayerDie, {
+      playerId,
     })
   }
 

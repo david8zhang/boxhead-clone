@@ -8,8 +8,8 @@ import MovePlayerCommand from './commands/MovePlayerCommand'
 import { ShootCommand } from './commands/ShootCommand'
 import { SpawnVirusCommand } from './commands/SpawnVirusCommand'
 import { KillVirusCommand } from './commands/KillVirusCommand'
-import { DamagePlayerCommand } from './commands/DamagePlayerCommand'
 import { StartGameCommand } from './commands/StartGameCommand'
+import { PlayerDieCommand } from './commands/PlayerDieCommand'
 
 export default class GameRoom extends Room<GameState> {
   public spawnVirusInterval?: NodeJS.Timer
@@ -18,14 +18,12 @@ export default class GameRoom extends Room<GameState> {
     this.setState(new GameState())
     this.onMessage(Message.MovePlayer, (client, message) => {
       this.dispatcher.dispatch(new MovePlayerCommand(), {
-        client,
         playerId: message.playerId,
         velocity: message.velocity,
       })
     })
     this.onMessage(Message.Shoot, (client, message) => {
       this.dispatcher.dispatch(new ShootCommand(), {
-        client,
         playerId: message.playerId,
         target: message.target,
       })
@@ -35,23 +33,21 @@ export default class GameRoom extends Room<GameState> {
         virusId: message.virusId,
       })
     })
-
-    this.onMessage(Message.DamagePlayer, (client, message) => {
-      this.dispatcher.dispatch(new DamagePlayerCommand(), {
-        playerId: message.playerId,
-        damage: message.damage,
-      })
-    })
-
     this.onMessage(Message.StartGame, () => {
       this.dispatcher.dispatch(new StartGameCommand())
       this.spawnVirusInterval = setInterval(() => {
         this.dispatcher.dispatch(new SpawnVirusCommand())
       }, 2000)
     })
+
+    this.onMessage(Message.PlayerDie, (client, message) => {
+      this.dispatcher.dispatch(new PlayerDieCommand(), {
+        playerId: message.playerId,
+      })
+    })
   }
 
-  onJoin(client: Client, options: any) {
+  onJoin(client: Client) {
     this.state.players.push(
       new Player(client.id, {
         x: Math.floor(Math.random() * 800),
@@ -62,7 +58,8 @@ export default class GameRoom extends Room<GameState> {
       playerId: client.id,
     })
   }
-  onLeave(client: Client, options: any) {
+
+  onLeave(client: Client) {
     const indexToRemove = this.state.players.findIndex((player) => player.id === client.id)
     this.state.players.deleteAt(indexToRemove)
   }

@@ -6,7 +6,7 @@ export class Virus {
   public virusId: string
   private game: Game
   public sprite: Phaser.Physics.Arcade.Sprite
-  private moveTarget?: Cell
+  public moveTarget?: Cell
   constructor(position: { x: number; y: number }, virusId: string, game: Game) {
     this.virusId = virusId
     this.game = game

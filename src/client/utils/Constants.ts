@@ -6,8 +6,10 @@ export class Constants {
   public static PLAYER_HEALTH = 100
   public static PLAYER_SPEED = 200
   public static ANTIBODY_SPEED = 500
+  public static ANTIBODY_DAMAGE = 10
 
   // Virus stats
   public static VIRUS_SPEED = 150
   public static VIRUS_DAMAGE = 5
+  public static VIRUS_HEALTH = 30
 }

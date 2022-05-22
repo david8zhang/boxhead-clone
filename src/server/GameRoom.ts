@@ -19,7 +19,7 @@ export default class GameRoom extends Room<GameState> {
     this.onMessage(Message.MovePlayer, (client, message) => {
       this.dispatcher.dispatch(new MovePlayerCommand(), {
         playerId: message.playerId,
-        velocity: message.velocity,
+        position: message.position,
       })
     })
     this.onMessage(Message.Shoot, (client, message) => {
@@ -35,9 +35,9 @@ export default class GameRoom extends Room<GameState> {
     })
     this.onMessage(Message.StartGame, () => {
       this.dispatcher.dispatch(new StartGameCommand())
-      this.spawnVirusInterval = setInterval(() => {
-        this.dispatcher.dispatch(new SpawnVirusCommand())
-      }, 2000)
+      // this.spawnVirusInterval = setInterval(() => {
+      //   this.dispatcher.dispatch(new SpawnVirusCommand())
+      // }, 2000)
     })
 
     this.onMessage(Message.PlayerDie, (client, message) => {

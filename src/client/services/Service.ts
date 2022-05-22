@@ -44,7 +44,7 @@ export default class Server {
       player.onChange = (changes) => {
         // Update position
         const isPositionChange = changes.find((change) => {
-          return change.field === 'xVelocity' || change.field == 'yVelocity'
+          return change.field === 'x' || change.field == 'y'
         })
         if (isPositionChange) {
           this.events.emit('player-movement-update', player, changes)
@@ -112,10 +112,10 @@ export default class Server {
     }
   }
 
-  movePlayer(playerId: string, velocity: { x?: number; y?: number }) {
+  movePlayer(playerId: string, position: { x?: number; y?: number }) {
     this.room?.send(Message.MovePlayer, {
       playerId,
-      velocity,
+      position,
     })
   }
 

@@ -65,11 +65,14 @@ export default class Game extends Phaser.Scene {
     this.physics.add.collider(this.viruses, this.antibodies, (obj1, obj2) => {
       const virus = obj1.getData('ref') as Virus
       const antibody = obj2.getData('ref') as Antibody
-      virus.destroy()
       antibody.destroy()
 
-      if (this.server) {
-        this.server.killVirus(virus.virusId)
+      virus.takeDamage(Constants.ANTIBODY_DAMAGE)
+      if (virus.health === 0) {
+        virus.destroy()
+        if (this.server) {
+          this.server.killVirus(virus.id)
+        }
       }
     })
   }
@@ -125,10 +128,8 @@ export default class Game extends Phaser.Scene {
         velocityX = 0
       }
       currentCell.setVelocityX(velocityX)
-      this.server?.movePlayer(this.playerId, { x: velocityX })
     } else {
       currentCell.setVelocityX(0)
-      this.server?.movePlayer(this.playerId, { x: 0 })
     }
     if (upDown || downDown) {
       let velocityY = upDown ? -speed : speed
@@ -136,11 +137,13 @@ export default class Game extends Phaser.Scene {
         velocityY = 0
       }
       currentCell.setVelocityY(velocityY)
-      this.server?.movePlayer(this.playerId, { y: velocityY })
     } else {
       currentCell.setVelocityY(0)
-      this.server?.movePlayer(this.playerId, { y: 0 })
     }
+    this.server?.movePlayer(this.playerId, {
+      x: currentCell.sprite.x,
+      y: currentCell.sprite.y,
+    })
   }
 
   setupKeyboardKeys() {
@@ -170,11 +173,11 @@ export default class Game extends Phaser.Scene {
     if (playerToUpdate && player.id !== this.playerId) {
       changes.forEach((change) => {
         const { field, value } = change
-        if (field === 'xVelocity') {
-          playerToUpdate.setVelocityX(value)
+        if (field === 'x') {
+          playerToUpdate.sprite.x = value
         }
-        if (field === 'yVelocity') {
-          playerToUpdate.setVelocityY(value)
+        if (field === 'y') {
+          playerToUpdate.sprite.y = value
         }
       })
     }

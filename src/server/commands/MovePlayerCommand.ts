@@ -3,7 +3,7 @@ import Player from '../states/Player'
 
 type Payload = {
   playerId: string
-  velocity: {
+  position: {
     x: number
     y: number
   }
@@ -11,15 +11,15 @@ type Payload = {
 
 export default class MovePlayerCommand extends Command {
   execute(data: Payload) {
-    const { playerId, velocity } = data
+    const { playerId, position } = data
     const playerIndex = this.room.state.players.findIndex((p: Player) => playerId === p.id)
     const player = this.room.state.players[playerIndex]
     if (player) {
-      if (velocity.x !== undefined) {
-        player.xVelocity = velocity.x
+      if (position.x !== undefined) {
+        player.x = position.x
       }
-      if (velocity.y !== undefined) {
-        player.yVelocity = velocity.y
+      if (position.y !== undefined) {
+        player.y = position.y
       }
     }
   }

@@ -10,8 +10,8 @@ export interface Player {
   y: number
   id: string
 
-  xVelocity: number
-  yVelocity: number
+  velocityX: number
+  velocityY: number
 
   projectileTargetX: number
   projectileTargetY: number

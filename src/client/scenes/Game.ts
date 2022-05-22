@@ -127,23 +127,27 @@ export default class Game extends Phaser.Scene {
       if (leftDown && rightDown) {
         velocityX = 0
       }
-      currentCell.setVelocityX(velocityX)
+      this.server?.movePlayer(this.playerId, {
+        x: velocityX,
+      })
     } else {
-      currentCell.setVelocityX(0)
+      this.server?.movePlayer(this.playerId, {
+        x: 0,
+      })
     }
     if (upDown || downDown) {
       let velocityY = upDown ? -speed : speed
       if (upDown && downDown) {
         velocityY = 0
       }
-      currentCell.setVelocityY(velocityY)
+      this.server?.movePlayer(this.playerId, {
+        y: velocityY,
+      })
     } else {
-      currentCell.setVelocityY(0)
+      this.server?.movePlayer(this.playerId, {
+        y: 0,
+      })
     }
-    this.server?.movePlayer(this.playerId, {
-      x: currentCell.sprite.x,
-      y: currentCell.sprite.y,
-    })
   }
 
   setupKeyboardKeys() {
@@ -161,8 +165,6 @@ export default class Game extends Phaser.Scene {
       }
       const currentCell = this.playerMapping[this.playerId]
       if (currentCell) {
-        const antibody = currentCell.shootAntibody(target)
-        this.antibodies.add(antibody.sprite)
         this.server?.shoot(this.playerId, target)
       }
     })
@@ -170,14 +172,14 @@ export default class Game extends Phaser.Scene {
 
   private onPlayerMovementUpdate(player: Player, changes: any[]) {
     const playerToUpdate = this.playerMapping[player.id]
-    if (playerToUpdate && player.id !== this.playerId) {
+    if (playerToUpdate) {
       changes.forEach((change) => {
         const { field, value } = change
-        if (field === 'x') {
-          playerToUpdate.sprite.x = value
+        if (field === 'velocityX') {
+          playerToUpdate.setVelocityX(value)
         }
-        if (field === 'y') {
-          playerToUpdate.sprite.y = value
+        if (field === 'velocityY') {
+          playerToUpdate.setVelocityY(value)
         }
       })
     }
@@ -199,7 +201,7 @@ export default class Game extends Phaser.Scene {
 
   private onPlayerShoot(player: Player, target: { x: number; y: number }) {
     const playerToUpdate = this.playerMapping[player.id]
-    if (playerToUpdate && player.id !== this.playerId) {
+    if (playerToUpdate) {
       const antibody = playerToUpdate.shootAntibody({
         x: target.x,
         y: target.y,

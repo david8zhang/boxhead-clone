@@ -12,7 +12,7 @@ export default class Server {
   private _playerId: string = ''
 
   constructor() {
-    this.client = new Client('ws://localhost:2567')
+    this.client = new Client('ws://10.0.0.5:2567')
     this.events = new Phaser.Events.EventEmitter()
   }
 
@@ -44,7 +44,7 @@ export default class Server {
       player.onChange = (changes) => {
         // Update position
         const isPositionChange = changes.find((change) => {
-          return change.field === 'x' || change.field == 'y'
+          return change.field === 'velocityX' || change.field == 'velocityY'
         })
         if (isPositionChange) {
           this.events.emit('player-movement-update', player, changes)
@@ -112,10 +112,10 @@ export default class Server {
     }
   }
 
-  movePlayer(playerId: string, position: { x?: number; y?: number }) {
+  movePlayer(playerId: string, velocity: { x?: number; y?: number }) {
     this.room?.send(Message.MovePlayer, {
       playerId,
-      position,
+      velocity,
     })
   }
 

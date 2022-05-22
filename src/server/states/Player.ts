@@ -4,8 +4,8 @@ export default class Player extends Schema {
   @type('string') id: string
   @type('number') x: number
   @type('number') y: number
-  @type('number') xVelocity: number = 0
-  @type('number') yVelocity: number = 0
+  @type('number') velocityX: number = 0
+  @type('number') velocityY: number = 0
 
   @type('number') projectileTargetX: number = -1
   @type('number') projectileTargetY: number = -1
@@ -19,9 +19,9 @@ export default class Player extends Schema {
     this.id = id
   }
 
-  setVelocity(xVelocity: number, yVelocity: number) {
-    this.xVelocity = xVelocity
-    this.yVelocity = yVelocity
+  setVelocity(velocityX: number, velocityY: number) {
+    this.velocityX = velocityX
+    this.velocityY = velocityY
   }
 
   setLastShotProjectile(target: { x: number; y: number }) {
